@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Data (too large for git)
+*.npy
+*.npz
+*.h5
+*.hdf5
+*.off
+*.obj
+*.glb
+*.gltf
+*.fbx
+*.ply
+*.stl
+*.mtl
+
+# Rendered images (171K+ files)
+data/renders/
+data/clones-objaverse/objaverse-lvis/
+data/clones-objaverse/obj/
+data/clones-objaverse/clones/
+
+# FAISS indices
+*.index
+data/faiss/synthetic_*.npy
+
+# Embeddings (binary)
+data/embeddings/*.npy
+
+# Model checkpoints
+*.pt
+*.pth
+*.ckpt
+*.bin
+
+# Environment
+.env
+*.env
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
