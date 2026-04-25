@@ -1,0 +1,16 @@
+torch>=2.0
+torchvision
+transformers>=4.30
+trimesh>=4.0
+numpy
+scipy
+scikit-learn
+faiss-gpu
+matplotlib
+seaborn
+Pillow
+tqdm
+umap-learn
+objaverse
+nvdiffrast
+openai
