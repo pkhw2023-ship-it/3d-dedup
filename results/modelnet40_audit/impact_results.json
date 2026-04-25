@@ -1,0 +1,351 @@
+{
+  "knn_config": {
+    "n_neighbors": 1,
+    "metric": "cosine"
+  },
+  "full_test_accuracy": 0.8342787682333873,
+  "results_by_threshold": {
+    "0.99": {
+      "threshold": 0.99,
+      "num_dup_pairs": 308,
+      "num_dup_test_models": 169,
+      "full_test_size": 2468,
+      "clean_test_size": 2299,
+      "full_accuracy": 0.8342787682333873,
+      "clean_accuracy": 0.8220965637233579,
+      "dup_only_accuracy": 1.0,
+      "accuracy_inflation": 0.012182204510029382,
+      "inflation_pct": 1.460207903387689
+    },
+    "0.98": {
+      "threshold": 0.98,
+      "num_dup_pairs": 1078,
+      "num_dup_test_models": 325,
+      "full_test_size": 2468,
+      "clean_test_size": 2143,
+      "full_accuracy": 0.8342787682333873,
+      "clean_accuracy": 0.809146056929538,
+      "dup_only_accuracy": 1.0,
+      "accuracy_inflation": 0.02513271130384931,
+      "inflation_pct": 3.0125076006750895
+    },
+    "0.97": {
+      "threshold": 0.97,
+      "num_dup_pairs": 2072,
+      "num_dup_test_models": 476,
+      "full_test_size": 2468,
+      "clean_test_size": 1992,
+      "full_accuracy": 0.8342787682333873,
+      "clean_accuracy": 0.7946787148594378,
+      "dup_only_accuracy": 1.0,
+      "accuracy_inflation": 0.03960005337394956,
+      "inflation_pct": 4.746621259199006
+    },
+    "0.95": {
+      "threshold": 0.95,
+      "num_dup_pairs": 5784,
+      "num_dup_test_models": 809,
+      "full_test_size": 2468,
+      "clean_test_size": 1659,
+      "full_accuracy": 0.8342787682333873,
+      "clean_accuracy": 0.7576853526220615,
+      "dup_only_accuracy": 0.9913473423980222,
+      "accuracy_inflation": 0.07659341561132582,
+      "inflation_pct": 9.180794061619823
+    },
+    "0.9": {
+      "threshold": 0.9,
+      "num_dup_pairs": 5784,
+      "num_dup_test_models": 809,
+      "full_test_size": 2468,
+      "clean_test_size": 1659,
+      "full_accuracy": 0.8342787682333873,
+      "clean_accuracy": 0.7576853526220615,
+      "dup_only_accuracy": 0.9913473423980222,
+      "accuracy_inflation": 0.07659341561132582,
+      "inflation_pct": 9.180794061619823
+    }
+  },
+  "per_category_impact": {
+    "airplane": {
+      "test_count": 100,
+      "dup_count": 27,
+      "full_accuracy": 0.47,
+      "clean_accuracy": 0.273972602739726,
+      "accuracy_drop": 0.19602739726027396
+    },
+    "bathtub": {
+      "test_count": 50,
+      "dup_count": 3,
+      "full_accuracy": 0.72,
+      "clean_accuracy": 0.7021276595744681,
+      "accuracy_drop": 0.017872340425531874
+    },
+    "bed": {
+      "test_count": 100,
+      "dup_count": 18,
+      "full_accuracy": 0.94,
+      "clean_accuracy": 0.926829268292683,
+      "accuracy_drop": 0.013170731707316974
+    },
+    "bench": {
+      "test_count": 20,
+      "dup_count": 5,
+      "full_accuracy": 0.9,
+      "clean_accuracy": 0.8666666666666667,
+      "accuracy_drop": 0.033333333333333326
+    },
+    "bookshelf": {
+      "test_count": 100,
+      "dup_count": 55,
+      "full_accuracy": 0.85,
+      "clean_accuracy": 0.6666666666666666,
+      "accuracy_drop": 0.18333333333333335
+    },
+    "bottle": {
+      "test_count": 100,
+      "dup_count": 24,
+      "full_accuracy": 0.96,
+      "clean_accuracy": 0.9473684210526315,
+      "accuracy_drop": 0.012631578947368438
+    },
+    "bowl": {
+      "test_count": 20,
+      "dup_count": 8,
+      "full_accuracy": 1.0,
+      "clean_accuracy": 1.0,
+      "accuracy_drop": 0.0
+    },
+    "car": {
+      "test_count": 100,
+      "dup_count": 10,
+      "full_accuracy": 0.61,
+      "clean_accuracy": 0.5666666666666667,
+      "accuracy_drop": 0.043333333333333335
+    },
+    "chair": {
+      "test_count": 100,
+      "dup_count": 18,
+      "full_accuracy": 0.91,
+      "clean_accuracy": 0.8902439024390244,
+      "accuracy_drop": 0.019756097560975627
+    },
+    "cone": {
+      "test_count": 20,
+      "dup_count": 8,
+      "full_accuracy": 0.95,
+      "clean_accuracy": 0.9166666666666666,
+      "accuracy_drop": 0.033333333333333326
+    },
+    "cup": {
+      "test_count": 20,
+      "dup_count": 2,
+      "full_accuracy": 0.55,
+      "clean_accuracy": 0.5,
+      "accuracy_drop": 0.050000000000000044
+    },
+    "curtain": {
+      "test_count": 20,
+      "dup_count": 5,
+      "full_accuracy": 0.95,
+      "clean_accuracy": 0.9333333333333333,
+      "accuracy_drop": 0.016666666666666607
+    },
+    "desk": {
+      "test_count": 86,
+      "dup_count": 18,
+      "full_accuracy": 0.8023255813953488,
+      "clean_accuracy": 0.75,
+      "accuracy_drop": 0.05232558139534882
+    },
+    "door": {
+      "test_count": 20,
+      "dup_count": 7,
+      "full_accuracy": 0.95,
+      "clean_accuracy": 0.9230769230769231,
+      "accuracy_drop": 0.026923076923076827
+    },
+    "dresser": {
+      "test_count": 86,
+      "dup_count": 50,
+      "full_accuracy": 0.8953488372093024,
+      "clean_accuracy": 0.7777777777777778,
+      "accuracy_drop": 0.11757105943152457
+    },
+    "flower_pot": {
+      "test_count": 20,
+      "dup_count": 2,
+      "full_accuracy": 0.25,
+      "clean_accuracy": 0.16666666666666666,
+      "accuracy_drop": 0.08333333333333334
+    },
+    "glass_box": {
+      "test_count": 100,
+      "dup_count": 92,
+      "full_accuracy": 0.96,
+      "clean_accuracy": 0.5,
+      "accuracy_drop": 0.45999999999999996
+    },
+    "guitar": {
+      "test_count": 100,
+      "dup_count": 8,
+      "full_accuracy": 0.7,
+      "clean_accuracy": 0.6739130434782609,
+      "accuracy_drop": 0.02608695652173909
+    },
+    "keyboard": {
+      "test_count": 20,
+      "dup_count": 2,
+      "full_accuracy": 0.85,
+      "clean_accuracy": 0.8333333333333334,
+      "accuracy_drop": 0.016666666666666607
+    },
+    "lamp": {
+      "test_count": 20,
+      "dup_count": 2,
+      "full_accuracy": 0.8,
+      "clean_accuracy": 0.7777777777777778,
+      "accuracy_drop": 0.022222222222222254
+    },
+    "laptop": {
+      "test_count": 20,
+      "dup_count": 9,
+      "full_accuracy": 0.95,
+      "clean_accuracy": 0.9090909090909091,
+      "accuracy_drop": 0.040909090909090895
+    },
+    "mantel": {
+      "test_count": 100,
+      "dup_count": 82,
+      "full_accuracy": 0.89,
+      "clean_accuracy": 0.3888888888888889,
+      "accuracy_drop": 0.5011111111111111
+    },
+    "monitor": {
+      "test_count": 100,
+      "dup_count": 23,
+      "full_accuracy": 0.96,
+      "clean_accuracy": 0.948051948051948,
+      "accuracy_drop": 0.01194805194805193
+    },
+    "night_stand": {
+      "test_count": 86,
+      "dup_count": 26,
+      "full_accuracy": 0.813953488372093,
+      "clean_accuracy": 0.75,
+      "accuracy_drop": 0.06395348837209303
+    },
+    "person": {
+      "test_count": 20,
+      "dup_count": 0,
+      "full_accuracy": 1.0,
+      "clean_accuracy": 1.0,
+      "accuracy_drop": 0.0
+    },
+    "piano": {
+      "test_count": 100,
+      "dup_count": 16,
+      "full_accuracy": 0.94,
+      "clean_accuracy": 0.9285714285714286,
+      "accuracy_drop": 0.011428571428571344
+    },
+    "plant": {
+      "test_count": 100,
+      "dup_count": 14,
+      "full_accuracy": 0.73,
+      "clean_accuracy": 0.686046511627907,
+      "accuracy_drop": 0.04395348837209301
+    },
+    "radio": {
+      "test_count": 20,
+      "dup_count": 2,
+      "full_accuracy": 0.75,
+      "clean_accuracy": 0.7222222222222222,
+      "accuracy_drop": 0.02777777777777779
+    },
+    "range_hood": {
+      "test_count": 100,
+      "dup_count": 78,
+      "full_accuracy": 0.87,
+      "clean_accuracy": 0.4090909090909091,
+      "accuracy_drop": 0.4609090909090909
+    },
+    "sink": {
+      "test_count": 20,
+      "dup_count": 1,
+      "full_accuracy": 0.7,
+      "clean_accuracy": 0.6842105263157895,
+      "accuracy_drop": 0.015789473684210464
+    },
+    "sofa": {
+      "test_count": 100,
+      "dup_count": 30,
+      "full_accuracy": 0.9,
+      "clean_accuracy": 0.8571428571428571,
+      "accuracy_drop": 0.04285714285714293
+    },
+    "stairs": {
+      "test_count": 20,
+      "dup_count": 0,
+      "full_accuracy": 0.85,
+      "clean_accuracy": 0.85,
+      "accuracy_drop": 0.0
+    },
+    "stool": {
+      "test_count": 20,
+      "dup_count": 0,
+      "full_accuracy": 0.7,
+      "clean_accuracy": 0.7,
+      "accuracy_drop": 0.0
+    },
+    "table": {
+      "test_count": 100,
+      "dup_count": 32,
+      "full_accuracy": 0.86,
+      "clean_accuracy": 0.7941176470588235,
+      "accuracy_drop": 0.0658823529411765
+    },
+    "tent": {
+      "test_count": 20,
+      "dup_count": 4,
+      "full_accuracy": 0.75,
+      "clean_accuracy": 0.6875,
+      "accuracy_drop": 0.0625
+    },
+    "toilet": {
+      "test_count": 100,
+      "dup_count": 55,
+      "full_accuracy": 0.98,
+      "clean_accuracy": 0.9555555555555556,
+      "accuracy_drop": 0.02444444444444438
+    },
+    "tv_stand": {
+      "test_count": 100,
+      "dup_count": 32,
+      "full_accuracy": 0.83,
+      "clean_accuracy": 0.7794117647058824,
+      "accuracy_drop": 0.0505882352941176
+    },
+    "vase": {
+      "test_count": 100,
+      "dup_count": 24,
+      "full_accuracy": 0.81,
+      "clean_accuracy": 0.7763157894736842,
+      "accuracy_drop": 0.03368421052631587
+    },
+    "wardrobe": {
+      "test_count": 20,
+      "dup_count": 13,
+      "full_accuracy": 0.85,
+      "clean_accuracy": 0.7142857142857143,
+      "accuracy_drop": 0.13571428571428568
+    },
+    "xbox": {
+      "test_count": 20,
+      "dup_count": 4,
+      "full_accuracy": 0.75,
+      "clean_accuracy": 0.6875,
+      "accuracy_drop": 0.0625
+    }
+  }
+}
