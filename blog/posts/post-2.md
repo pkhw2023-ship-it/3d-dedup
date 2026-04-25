@@ -1,14 +1,3 @@
----
-title: "Multi-View Rendering for 3D Understanding: Camera Strategies That Actually Work"
-subtitle: "Why your renders are blank, how to fix them, and why 28 views beat 1 by 88% for duplicate detection"
-author: "Harish Wajjala"
-date: 2026-04-24
-series: "Detecting 3D Near-Duplicates at Scale"
-part: 2 of 5
-tags: ["3D Computer Vision", "Machine Learning", "Near-Duplicate Detection", "DINOv2", "Multi-View Rendering"]
-estimated_read_time: "20 min"
----
-
 # Multi-View Rendering for 3D Understanding: Camera Strategies That Actually Work
 
 *Why your renders are blank, how to fix them, and why 28 views beat 1 by 88% for duplicate detection*
@@ -27,11 +16,11 @@ The problem was embarrassingly simple: my camera was looking at the origin `[0, 
 
 This is the **blank-image trap** — the single most common rendering failure in 3D ML pipelines. It's the kind of bug that doesn't crash, doesn't throw an error, and produces files that *look* right at a glance (they're valid PNGs, they're the right resolution, they have an alpha channel). You only notice when your downstream model performs terribly and you trace it back to training on thousands of empty images.
 
-This post shares the hard-won lessons from rendering **171,136 images** across 3,056 3D models for [3D-DupBench](/post-1), the benchmark I built for near-duplicate detection. I'll cover the camera strategies that actually work, the textured vs. silhouette rendering tradeoff, the specific code patterns that prevent blank renders, and why nvdiffrast changed the economics of multi-view rendering.
+This post shares the hard-won lessons from rendering **171,136 images** across 3,056 3D models for 3D-DupBench, the benchmark I built for near-duplicate detection (see Part 1 of this series). I'll cover the camera strategies that actually work, the textured vs. silhouette rendering tradeoff, the specific code patterns that prevent blank renders, and why nvdiffrast changed the economics of multi-view rendering.
 
 If you're building a 3D ML pipeline that touches rendering — whether for classification, retrieval, generation, or reconstruction — the next 15 minutes will save you a week of debugging.
 
-*This is Part 2 of 5 in the series "[Detecting 3D Near-Duplicates at Scale](/post-1)." Part 1 covered the end-to-end pipeline and the DINOv2 embedding strategy.*
+*This is Part 2 of 5 in the series "Detecting 3D Near-Duplicates at Scale." Part 1 covered the end-to-end pipeline and the DINOv2 embedding strategy.*
 
 ---
 
@@ -54,7 +43,7 @@ This idea isn't new. [Chen et al. (2003)](https://www.cs.princeton.edu/~funk/LFD
 The first design decision in multi-view rendering is *where to place the cameras*. This determines what geometric information is captured and what's lost. I evaluated four configurations, from trivial to comprehensive.
 
 ![Camera positions on the unit sphere](../images/post-2_camera_positions.png)
-*Figure 1: Three camera configurations visualized on the unit sphere. Blue dots show the 8-view horizontal ring at 30° elevation. Green dots show 20 dodecahedron vertices for near-uniform coverage. The combined 28-view setup (right) provides comprehensive coverage with manageable compute.*
+*Figure 1: Three camera configurations visualized on the unit sphere. Blue dots show the 8-view horizontal ring at 30° elevation. Green dots show 20 dodecahedron vertices for near-uniform coverage. The combined 28-view setup (right) provides comprehensive coverage with manageable compute. Image by author.*
 
 ### Single view: The front-facing baseline
 
@@ -127,7 +116,7 @@ def compute_all_cameras():
 ```
 
 ![28 views of a single model](../images/post-2_view_comparison_strip.png)
-*Figure 2: All 28 rendered views of a single Objaverse model. Views 0–7 (blue, top rows) form the horizontal ring at 30° elevation. Views 8–27 (green, bottom rows) are dodecahedron vertices covering the full sphere.*
+*Figure 2: All 28 rendered views of a single Objaverse model. Views 0–7 (blue, top rows) form the horizontal ring at 30° elevation. Views 8–27 (green, bottom rows) are dodecahedron vertices covering the full sphere. Image by author.*
 
 ### How many views do you actually need?
 
@@ -136,7 +125,7 @@ This is an empirical question, and the answer is: **more helps, but with sharply
 I ran a systematic ablation comparing 1, 8, and 28 views for embedding retrieval (DINOv2-Giant), and 2, 4, 6, and 8 views for the full rescoring pipeline:
 
 ![View count ablation](../images/post-2_view_count_ablation.png)
-*Figure 3: Left — Embedding retrieval mAP jumps +16.7% from 1→8 views, but only +1.9% from 8→28 with mean pooling. The concat+PCA aggregation strategy adds another +15.9% at 28 views. Right — Full pipeline F1 improves +12% from 2→8 rescoring views, with most gains from 2→4.*
+*Figure 3: Left — Embedding retrieval mAP jumps +16.7% from 1→8 views, but only +1.9% from 8→28 with mean pooling. The concat+PCA aggregation strategy adds another +15.9% at 28 views. Right — Full pipeline F1 improves +12% from 2→8 rescoring views, with most gains from 2→4. Image by author.*
 
 | Views | Embedding mAP (mean pool) | Full Pipeline F1 |
 |:-----:|:-------------------------:|:-----------------:|
@@ -162,7 +151,7 @@ Every model is rendered in two modes:
 - **LFD (Light Field Descriptor)**: Uniform white-plastic surface (RGB 0.82), pure geometry with Lambertian shading. Strips away all appearance information, isolating shape.
 
 ![Textured vs LFD comparison](../images/post-2_textured_vs_lfd.png)
-*Figure 4: The same four models rendered with textured materials (left) and LFD/white-plastic geometry-only mode (right). LFD removes all texture information, forcing similarity comparisons to rely on shape alone.*
+*Figure 4: The same four models rendered with textured materials (left) and LFD/white-plastic geometry-only mode (right). LFD removes all texture information, forcing similarity comparisons to rely on shape alone. Image by author.*
 
 Which mode produces better embeddings? The answer surprised me: **it barely matters.**
 
@@ -214,7 +203,7 @@ This works perfectly when the mesh is centered at the origin with unit scale. Th
 Even if you normalize the mesh to the origin, a fixed camera distance (`radius=2.5` in the example above) causes problems. A model with a bounding box diagonal of 0.1 will appear as a tiny speck. A model with a diagonal of 50 will overflow the view frustum, showing only a fragment.
 
 ![The blank-image trap illustrated](../images/post-2_blank_image_trap.png)
-*Figure 5: Three rendering scenarios. Left — camera aimed at the origin misses an off-center mesh entirely. Center — fixed camera distance renders a tiny mesh as a speck. Right — adaptive camera targeting and distance produce a correctly framed render.*
+*Figure 5: Three rendering scenarios. Left — camera aimed at the origin misses an off-center mesh entirely. Center — fixed camera distance renders a tiny mesh as a speck. Right — adaptive camera targeting and distance produce a correctly framed render. Image by author.*
 
 ### The fix: mesh-adaptive camera targeting
 
@@ -329,7 +318,7 @@ Traditional 3D rendering options for Python ML pipelines include Blender (featur
 We rendered all 3,056 models × 28 views × 2 modes = **171,136 images** on a single Tesla T4 GPU:
 
 ![nvdiffrast performance](../images/post-2_render_speed.png)
-*Figure 6: Left — nvdiffrast is ~180× faster than Blender and ~36× faster than Pyrender for batch multi-view rendering. Right — Performance profile on the Tesla T4 showing efficient GPU utilization with just 38.8 MB peak VRAM.*
+*Figure 6: Left — nvdiffrast is ~180× faster than Blender and ~36× faster than Pyrender for batch multi-view rendering. Right — Performance profile on the Tesla T4 showing efficient GPU utilization with just 38.8 MB peak VRAM. Image by author.*
 
 | Metric | Value |
 |--------|-------|
@@ -532,13 +521,13 @@ Here's the complete rendering recipe that powers the 3D-DupBench pipeline:
 
 The total cost: **56.6 minutes on a Tesla T4** for 3,056 models → 171,136 images, with 99.0% validation pass rate and 38.8 MB peak GPU memory. That's less than $1 of GPU compute on a cloud instance.
 
-The full rendering code is available in the [companion repository](https://github.com/hwajjala/3d-dupbench). The key file is `render_multiview.py` — 850 lines that handle everything from mesh loading to validation to checkpointing.
+The full rendering code is available in the [companion repository](https://github.com/pkhw2023-ship-it/3d-dedup). The key file is `render_multiview.py` — 850 lines that handle everything from mesh loading to validation to checkpointing.
 
 ---
 
 ## What's Next
 
-With 171,136 images rendered and validated, the next step is turning those images into searchable vector representations. In [Post 3 — Embedding Extraction and Vector Search](/post-3), I'll cover:
+With 171,136 images rendered and validated, the next step is turning those images into searchable vector representations. In Post 3 — Embedding Extraction and Vector Search, I'll cover:
 
 - **DINOv2 vs. CLIP**: which vision foundation model produces better 3D embeddings, and why
 - **Aggregation strategies**: mean pooling vs. max pooling vs. concatenation+PCA — why the right choice gives a 16% mAP boost
@@ -551,11 +540,11 @@ The rendering pipeline in this post is the foundation that makes all of that pos
 
 *This is Part 2 of 5 in the series "Detecting 3D Near-Duplicates at Scale."*
 
-- *[Part 1: Pipeline Overview and Key Results](/post-1)*
+- *Part 1: Pipeline Overview and Key Results*
 - ***Part 2: Multi-View Rendering (this post)***
-- *[Part 3: Embedding Extraction and Vector Search](/post-3)*
-- *[Part 4a: 3D-DupBench and the ModelNet40 Audit](/post-4a)*
-- *[Part 4b: Results & Production](/post-4b)*
+- *Part 3: Embedding Extraction and Vector Search*
+- *Part 4a: 3D-DupBench and the ModelNet40 Audit*
+- *Part 4b: Results & Production*
 
 ---
 

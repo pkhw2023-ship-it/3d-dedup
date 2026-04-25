@@ -1,14 +1,3 @@
----
-title: "From Embeddings to Production: VLM Verification and Billion-Scale Search for 3D Duplicates"
-subtitle: "A Gemini-powered verification stage that eliminates false positives, plus FAISS engineering for sub-millisecond search at scale"
-author: "Harish Wajjala"
-date: 2026-04-24
-series: "Detecting 3D Near-Duplicates at Scale"
-part: 5 of 5
-tags: ["3D Computer Vision", "Machine Learning", "Near-Duplicate Detection", "DINOv2", "Multi-View Rendering"]
-estimated_read_time: "23 min"
----
-
 # From Embeddings to Production: VLM Verification and Billion-Scale Search for 3D Duplicates
 
 *A Gemini-powered verification stage that eliminates false positives, plus FAISS engineering for sub-millisecond search at scale*
@@ -56,7 +45,7 @@ The overall winner among multi-view embedding methods is **DINOv2-giant with LFD
 *Table 1: Top-10 methods on 3D-DupBench. Full results for all 43 configurations are shown in the heatmap below.*
 
 ![Full Results Heatmap](../images/post-4b_full_results_table.png)
-*Figure 1: Complete mAP heatmap across 21 representative configurations and all difficulty tiers. Green indicates high mAP; red indicates low. Geometry baselines (bottom) dominate overall but require mesh access. Among image-based methods, concat-PCA aggregation consistently wins.*
+*Figure 1: Complete mAP heatmap across 21 representative configurations and all difficulty tiers. Green indicates high mAP; red indicates low. Geometry baselines (bottom) dominate overall but require mesh access. Among image-based methods, concat-PCA aggregation consistently wins. Image by author.*
 
 ### Surprise Findings
 
@@ -65,19 +54,19 @@ The overall winner among multi-view embedding methods is **DINOv2-giant with LFD
 **2. Concat-PCA is the clear aggregation winner.** Across every model family and render mode, concatenating per-view embeddings and reducing with PCA outperforms mean pooling, max pooling, and single-view baselines by a significant margin:
 
 ![Aggregation Comparison](../images/post-4b_aggregation_comparison.png)
-*Figure 2: Aggregation strategy comparison for DINOv2-B/14 with textured renders. Concat-PCA (28 views) achieves mAP 0.409, compared to 0.356 for max pooling and 0.351 for mean pooling. DINOv2-Giant with a single view (red dashed line at mAP 0.311) loses to DINOv2-Base with multi-view concat-PCA — aggregation strategy matters more than model size.*
+*Figure 2: Aggregation strategy comparison for DINOv2-B/14 with textured renders. Concat-PCA (28 views) achieves mAP 0.409, compared to 0.356 for max pooling and 0.351 for mean pooling. DINOv2-Giant with a single view (red dashed line at mAP 0.311) loses to DINOv2-Base with multi-view concat-PCA — aggregation strategy matters more than model size. Image by author.*
 
 **3. Multi-view aggregation matters more than model size.** DINOv2-Base with concat-PCA over 28 views (mAP 0.409) beats DINOv2-Giant with a single view (mAP 0.311). Going from 1 view to 28 views with mean pooling adds +0.063 mAP; switching from mean to concat-PCA adds another +0.057 mAP. But upgrading from DINOv2-B to DINOv2-G with the same aggregation only adds +0.020 mAP.
 
 ![View Count Ablation](../images/post-4b_view_ablation.png)
-*Figure 3: mAP vs number of views (mean-pooled, DINOv2-B). Most of the gain comes in the first 8 views; returns diminish beyond 12. Textured and LFD renders perform nearly identically.*
+*Figure 3: mAP vs number of views (mean-pooled, DINOv2-B). Most of the gain comes in the first 8 views; returns diminish beyond 12. Textured and LFD renders perform nearly identically. Image by author.*
 
 **4. LFD and textured renders are essentially interchangeable.** At the concat-PCA level, DINOv2-G/LFD achieves mAP 0.429 vs DINOv2-G/textured at 0.428 — a difference of 0.001. This is surprising: we expected LFD's 20-coefficient shape descriptor renders to lose information relative to full-texture renders. Instead, the geometry-focused LFD signal is equally effective for duplicate detection, even at the hardest tiers. This has a practical implication: LFD renders don't require texture information, making them applicable even when UV maps or materials are missing.
 
 **5. Every method breaks down on T4 (partial removal).** Across all 43 configurations, T4 consistently produces the lowest embedding mAP. Even the best embedding method (DINOv2-G concat-PCA) only achieves mAP 0.363 on T4. This makes sense: removing geometry fundamentally changes what the camera sees from certain angles. Multi-view aggregation helps — it provides redundancy when some views are more affected than others — but it can't fully compensate for missing geometry.
 
 ![Embedding vs Geometry Comparison](../images/post-4b_embedding_vs_geometry.png)
-*Figure 4: Per-tier mAP comparison between geometry baselines and top embedding methods. Geometry methods (gray) dominate on T3-T5 where they can directly compare mesh structure. Embedding methods (blue) are competitive on T1-T2 and don't require mesh access.*
+*Figure 4: Per-tier mAP comparison between geometry baselines and top embedding methods. Geometry methods (gray) dominate on T3-T5 where they can directly compare mesh structure. Embedding methods (blue) are competitive on T1-T2 and don't require mesh access. Image by author.*
 
 ### The Key Insight
 
@@ -98,7 +87,7 @@ Vision-language models are natural fits for this task. They can compare two imag
 ### The 3-Stage Pipeline
 
 ![Rescorer Pipeline](../images/post-4b_rescorer_pipeline.png)
-*Figure 5: The 3-stage VLM verification pipeline. Stage 1 uses embedding retrieval to generate candidates. Stage 2 applies a cheap single-view VLM screen to reject obvious non-matches. Stage 3 performs multi-view evidence accumulation for final verification.*
+*Figure 5: The 3-stage VLM verification pipeline. Stage 1 uses embedding retrieval to generate candidates. Stage 2 applies a cheap single-view VLM screen to reject obvious non-matches. Stage 3 performs multi-view evidence accumulation for final verification. Image by author.*
 
 **Stage 1 — Embedding Retrieval (Top-K Candidates).** For each query model, we retrieve the top-K nearest neighbors from the FAISS index using the DINOv2-G concat-PCA embeddings. In our evaluation, K=10. This stage runs in under 1 millisecond and provides the candidate set for downstream verification.
 
@@ -113,7 +102,7 @@ Why require ≥2 angles? A single matching angle could be coincidence — two di
 We swept the evidence threshold from 1 to 8 angles:
 
 ![Threshold Sweep](../images/post-4b_rescorer_threshold_sweep.png)
-*Figure 6: Left — Precision, recall, and F1 vs minimum evidence angles. Precision increases monotonically from 92.9% (ev≥1) to 98.9% (ev≥7), while recall decreases. Right — Per-tier performance at the chosen threshold (ev≥2).*
+*Figure 6: Left — Precision, recall, and F1 vs minimum evidence angles. Precision increases monotonically from 92.9% (ev≥1) to 98.9% (ev≥7), while recall decreases. Right — Per-tier performance at the chosen threshold (ev≥2). Image by author.*
 
 | Threshold | Precision | Recall | F1 | False Positives |
 |-----------|-----------|--------|----|-----------------|
@@ -130,7 +119,7 @@ The threshold of ≥2 angles was chosen because it crosses the 95% precision lin
 ### Results: From 63% to 95% Precision
 
 ![Rescorer Funnel](../images/post-4b_rescorer_funnel.png)
-*Figure 7: The VLM rescorer funnel. Of 500 initial candidates from embedding retrieval, Stage 2 rejects 271 (54.2%) as obvious non-matches. Stage 3 confirms 218 of the remaining 229. Final precision: 95.0%, up from 63.2% in the embedding-only baseline.*
+*Figure 7: The VLM rescorer funnel. Of 500 initial candidates from embedding retrieval, Stage 2 rejects 271 (54.2%) as obvious non-matches. Stage 3 confirms 218 of the remaining 229. Final precision: 95.0%, up from 63.2% in the embedding-only baseline. Image by author.*
 
 The numbers tell a clear story:
 
@@ -175,7 +164,7 @@ FAISS (Facebook AI Similarity Search) provides approximate nearest-neighbor sear
 We benchmarked seven FAISS index configurations on our 768-dimensional DINOv2 embeddings, scaling from 1K to 1M vectors on a Tesla T4 GPU:
 
 ![FAISS Benchmark](../images/post-4b_faiss_benchmark.png)
-*Figure 8: Query time vs recall@10 for different FAISS index types at 1M vectors. Each point represents a different nprobe setting. IVF-SQ8 (green) hits 97.7% recall at 6.2ms — the recommended configuration for production.*
+*Figure 8: Query time vs recall@10 for different FAISS index types at 1M vectors. Each point represents a different nprobe setting. IVF-SQ8 (green) hits 97.7% recall at 6.2ms — the recommended configuration for production. Image by author.*
 
 | Index | Query Time (1M) | Recall@10 | Memory (1M) | GPU |
 |-------|-----------------|-----------|-------------|-----|
@@ -198,7 +187,7 @@ We benchmarked seven FAISS index configurations on our 768-dimensional DINOv2 em
 ### Scaling Projections
 
 ![FAISS Scaling](../images/post-4b_faiss_scaling.png)
-*Figure 9: Left — Query latency vs database size for key index types. Flat search scales linearly; IVF-based indices scale sub-linearly. Right — Memory usage by index type. SQ8 provides 4× compression over flat storage.*
+*Figure 9: Left — Query latency vs database size for key index types. Flat search scales linearly; IVF-based indices scale sub-linearly. Right — Memory usage by index type. SQ8 provides 4× compression over flat storage. Image by author.*
 
 At 1M vectors, IVF-SQ8 uses 776 MB. Extrapolating:
 
@@ -222,7 +211,7 @@ The threshold between "pass" and "refer to VLM" determines the system's operatin
 ### Score Distributions
 
 ![Threshold Calibration](../images/post-4b_threshold_calibration.png)
-*Figure 10: Left — Cosine similarity distributions for true duplicate pairs (colored by tier) and non-duplicate pairs (gray). T1 and T2 pairs cluster near 1.0; T3-T5 pairs overlap significantly with non-duplicates. Right — Precision, recall, and F1 vs similarity threshold, with optimal (τ=0.68) and high-precision (τ=0.82) operating points marked.*
+*Figure 10: Left — Cosine similarity distributions for true duplicate pairs (colored by tier) and non-duplicate pairs (gray). T1 and T2 pairs cluster near 1.0; T3-T5 pairs overlap significantly with non-duplicates. Right — Precision, recall, and F1 vs similarity threshold, with optimal (τ=0.68) and high-precision (τ=0.82) operating points marked. Image by author.*
 
 The distributions tell a story of clean separation at easy tiers and frustrating overlap at hard ones:
 
@@ -254,7 +243,7 @@ The optimal threshold depends on your use case:
 ### The Full Pipeline
 
 ![Production Architecture](../images/post-4b_production_architecture.png)
-*Figure 11: Complete production architecture. A 3D model enters from the left, passes through rendering, embedding, and FAISS search. Models above the similarity threshold (τ=0.82) are referred to the Gemini VLM rescorer for multi-angle verification.*
+*Figure 11: Complete production architecture. A 3D model enters from the left, passes through rendering, embedding, and FAISS search. Models above the similarity threshold (τ=0.82) are referred to the Gemini VLM rescorer for multi-angle verification. Image by author.*
 
 The production pipeline processes a query model through six stages:
 
@@ -273,7 +262,7 @@ The production pipeline processes a query model through six stages:
 ### Latency Budget
 
 ![Latency Breakdown](../images/post-4b_latency_breakdown.png)
-*Figure 12: Left — Per-stage latency on a log scale. Rendering dominates the pipeline. Right — Latency distribution for the clean model path (no VLM invocation).*
+*Figure 12: Left — Per-stage latency on a log scale. Rendering dominates the pipeline. Right — Latency distribution for the clean model path (no VLM invocation). Image by author.*
 
 | Stage | Latency | Notes |
 |-------|---------|-------|
@@ -371,7 +360,7 @@ This is the final post in a five-part series on building a 3D duplicate detectio
 
 ### Key Contributions
 
-1. **3D-DupBench:** The first standardized, publicly available benchmark for 3D near-duplicate detection, with graduated difficulty tiers and controlled ground truth. [GitHub link]
+1. **3D-DupBench:** The first standardized, publicly available benchmark for 3D near-duplicate detection, with graduated difficulty tiers and controlled ground truth. [[GitHub](https://github.com/pkhw2023-ship-it/3d-dedup)]
 
 2. **Multi-view embedding pipeline:** DINOv2 + concat-PCA over 28 views provides a format-agnostic 3D fingerprint that achieves P@1 > 0.95 without mesh access.
 
@@ -381,7 +370,7 @@ This is the final post in a five-part series on building a 3D duplicate detectio
 
 5. **Production-ready architecture:** Concrete latency budgets, cost analysis, and index recommendations for deploying 3D duplicate detection at scale.
 
-All code, data, and benchmark materials are available at [GitHub repository]. 3D-DupBench is released under CC-BY-4.0.
+All code, data, and benchmark materials are available at [github.com/pkhw2023-ship-it/3d-dedup](https://github.com/pkhw2023-ship-it/3d-dedup). 3D-DupBench is released under CC-BY-4.0.
 
 ---
 

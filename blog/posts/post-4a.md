@@ -1,14 +1,3 @@
----
-title: "3D-DupBench: A Five-Tier Benchmark for Near-Duplicate 3D Model Detection"
-subtitle: "Why existing benchmarks fail, how we built a better one, and what we found hiding in ModelNet40"
-author: "Harish Wajjala"
-date: 2026-04-24
-series: "Detecting 3D Near-Duplicates at Scale"
-part: 4 of 5
-tags: ["3D Computer Vision", "Machine Learning", "Near-Duplicate Detection", "DINOv2", "Multi-View Rendering"]
-estimated_read_time: "19 min"
----
-
 # 3D-DupBench: A Five-Tier Benchmark for Near-Duplicate 3D Model Detection
 
 *Why existing benchmarks fail, how we built a better one, and what we found hiding in ModelNet40*
@@ -72,7 +61,7 @@ Our selection strategy sampled **191 models across 40 LVIS categories** (~5 mode
 The core design principle of 3D-DupBench is **graduated difficulty**. Each tier applies progressively more aggressive transformations to the source models, creating clones that test increasingly sophisticated detection capabilities. Every source model gets **3 variants per tier**, yielding 15 clones per source and **2,865 total clones**.
 
 ![Benchmark Design Overview](../images/post-4a_benchmark_design_overview.png)
-*Figure 1: 3D-DupBench pipeline overview. 191 source models from Objaverse-LVIS are transformed through 5 difficulty tiers, producing 2,865 validated clones with ground truth labels.*
+*Figure 1: 3D-DupBench pipeline overview. 191 source models from Objaverse-LVIS are transformed through 5 difficulty tiers, producing 2,865 validated clones with ground truth labels. Image by author.*
 
 #### T1 — Trivial: Format Re-Export
 
@@ -133,7 +122,7 @@ The core design principle of 3D-DupBench is **graduated difficulty**. Each tier 
 **Why it matters in practice:** Topology changes happen when artists run automatic retopology tools, when game engines convert meshes for real-time rendering, or when procedural generation systems produce models inspired by existing assets. These are the hardest duplicates to detect because the underlying mesh data is completely different — only the visual shape is preserved. This tier represents the frontier of 3D duplicate detection capability.
 
 ![Tier Examples Grid](../images/post-4a_tier_examples_grid.png)
-*Figure 2: Conceptual view of transformations applied at each tier, from trivial format re-export to adversarial topology changes.*
+*Figure 2: Conceptual view of transformations applied at each tier, from trivial format re-export to adversarial topology changes. Image by author.*
 
 ---
 
@@ -171,7 +160,7 @@ Results: **2,865 out of 2,865 clones passed all validation checks** — a 100% s
 ### Mesh Complexity Statistics
 
 ![Mesh Stats by Tier](../images/post-4a_mesh_stats_by_tier.png)
-*Figure 3: Distribution of face and vertex counts across tiers. T1–T3 preserve source complexity. T4 reduces it (partial removal). T5 increases it (subdivision).*
+*Figure 3: Distribution of face and vertex counts across tiers. T1–T3 preserve source complexity. T4 reduces it (partial removal). T5 increases it (subdivision). Image by author.*
 
 The complexity distributions tell an important story about what each tier does to the underlying mesh:
 
@@ -222,14 +211,14 @@ The contamination is far more extensive than previously documented.
 At the strictest threshold, **74 pairs had similarity scores of essentially 1.0** (≥ 0.9999), meaning the models are visually indistinguishable from multiple viewpoints. These aren't "similar" shapes — they are the same shape, duplicated across the train/test split boundary.
 
 ![ModelNet40 Duplicate Pairs](../images/post-4a_modelnet40_duplicates.png)
-*Figure 4: Top 10 highest-similarity cross-split pairs in ModelNet40. Red titles indicate pairs with similarity ≥ 0.9999 — effectively identical models appearing in both train and test splits.*
+*Figure 4: Top 10 highest-similarity cross-split pairs in ModelNet40. Red titles indicate pairs with similarity ≥ 0.9999 — effectively identical models appearing in both train and test splits. Image by author.*
 
 ### The Worst Offenders
 
 The contamination is heavily concentrated in specific categories:
 
 ![Category Duplicate Heatmap](../images/post-4a_category_duplicate_heatmap.png)
-*Figure 5: Left — Cross-split duplicate pairs by category. Right — Percentage of test models contaminated. Glass_box, mantel, and range_hood have catastrophic levels of leakage.*
+*Figure 5: Left — Cross-split duplicate pairs by category. Right — Percentage of test models contaminated. Glass_box, mantel, and range_hood have catastrophic levels of leakage. Image by author.*
 
 | Category | Cross-Split Pairs | Test Contamination | Accuracy Drop |
 |----------|------------------|--------------------|---------------|
@@ -250,7 +239,7 @@ The contamination is heavily concentrated in specific categories:
 We measured the impact using a 1-NN classifier (k=1, cosine distance) on DINOv2 embeddings:
 
 ![Accuracy Inflation](../images/post-4a_accuracy_inflation.png)
-*Figure 6: Left — Benchmark accuracy with and without duplicate contamination. Right — Scale of contamination at each threshold. Removing near-duplicates drops accuracy by up to 7.7 percentage points.*
+*Figure 6: Left — Benchmark accuracy with and without duplicate contamination. Right — Scale of contamination at each threshold. Removing near-duplicates drops accuracy by up to 7.7 percentage points. Image by author.*
 
 | Scenario | Test Size | 1-NN Accuracy | Change |
 |----------|----------|---------------|--------|
@@ -263,7 +252,7 @@ We measured the impact using a 1-NN classifier (k=1, cosine distance) on DINOv2 
 The critical finding: duplicate test models achieve **100% accuracy** at the 0.99 threshold. Every one of these models is correctly classified because an effectively identical model exists in the training set. They contribute zero information about a method's actual generalization ability.
 
 ![Per-Category Accuracy Impact](../images/post-4a_per_category_accuracy_impact.png)
-*Figure 7: Per-category accuracy impact of removing duplicates. For mantel, range_hood, and glass_box, removing duplicates cuts reported accuracy in half.*
+*Figure 7: Per-category accuracy impact of removing duplicates. For mantel, range_hood, and glass_box, removing duplicates cuts reported accuracy in half. Image by author.*
 
 For mantel, removing duplicates drops accuracy from 89.0% to 38.9% — a **50.1 percentage point drop**. For range_hood: 87.0% → 40.9% (46.1 pp). For glass_box: 96.0% → 50.0% (46.0 pp). These categories appear "easy" in published benchmarks only because their test sets are copies of their training data.
 
@@ -289,7 +278,7 @@ The multi-view embedding approach captures similarity that purely geometric meth
 4. **3D duplicate detection itself needs standardized evaluation** — which brings us back to the benchmark we built.
 
 ![Similarity Distribution](../images/post-4a_similarity_distribution.png)
-*Figure 8: Left — Cumulative pair count by similarity threshold across all ModelNet40 pairs. Right — Breakdown of pair types showing that 36.5% of high-similarity pairs cross the train/test boundary.*
+*Figure 8: Left — Cumulative pair count by similarity threshold across all ModelNet40 pairs. Right — Breakdown of pair types showing that 36.5% of high-similarity pairs cross the train/test boundary. Image by author.*
 
 ---
 
@@ -332,7 +321,7 @@ We provide a standardized results table for future papers:
 We benchmarked 20 embedding configurations across the bake-off dimensions (DINOv2-B vs. DINOv2-G, single-view vs. multi-view, textured vs. LFD rendering). The best configuration — **DINOv2-G with concatenated PCA embeddings from 28 LFD views** — achieves:
 
 ![Tier Difficulty Curve](../images/post-4a_tier_difficulty_curve.png)
-*Figure 9: mAP by tier for representative methods. Performance degrades monotonically across tiers, confirming the benchmark's difficulty gradient is well-calibrated.*
+*Figure 9: mAP by tier for representative methods. Performance degrades monotonically across tiers, confirming the benchmark's difficulty gradient is well-calibrated. Image by author.*
 
 | Tier | Best mAP | Best P@1 |
 |------|---------|---------|
@@ -390,4 +379,4 @@ The goal is a system that you can point at any 3D dataset and get back a ranked 
 
 ---
 
-*All code, data, and pre-computed embeddings are available at [github.com/hwajjala/3d-dupbench](https://github.com/hwajjala/3d-dupbench). The benchmark is licensed under CC-BY-4.0.*
+*All code, data, and pre-computed embeddings are available at [github.com/pkhw2023-ship-it/3d-dedup](https://github.com/pkhw2023-ship-it/3d-dedup). The benchmark is licensed under CC-BY-4.0.*

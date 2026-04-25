@@ -1,14 +1,3 @@
----
-title: "Detecting 3D Near-Duplicates at Scale: A Multi-View Embedding Pipeline"
-subtitle: "How to turn 3D meshes into searchable vector representations and find copies hidden in plain sight"
-author: "Harish Wajjala"
-date: 2026-04-24
-series: "Detecting 3D Near-Duplicates at Scale"
-part: 1 of 5
-tags: ["3D Computer Vision", "Machine Learning", "Near-Duplicate Detection", "DINOv2", "Multi-View Rendering"]
-estimated_read_time: "14 min"
----
-
 # Detecting 3D Near-Duplicates at Scale: A Multi-View Embedding Pipeline
 
 *How to turn 3D meshes into searchable vector representations and find copies hidden in plain sight*
@@ -30,7 +19,7 @@ The problem is unsolved because 3D near-duplicate detection is fundamentally har
 This series presents a complete, open-source pipeline that tackles the problem end-to-end: from raw 3D meshes to production-scale duplicate search. Over five posts, I'll walk through every design decision, share all the numbers, and release the benchmark I built to evaluate it.
 
 ![End-to-end pipeline architecture](../images/post-1_pipeline_overview.png)
-*Figure 1: The five-stage pipeline — render, embed, search, verify — processes a 3D mesh into a searchable vector in ~60 seconds and achieves 95% precision on flagged duplicates.*
+*Figure 1: The five-stage pipeline — render, embed, search, verify — processes a 3D mesh into a searchable vector in ~60 seconds and achieves 95% precision on flagged duplicates. Image by author.*
 
 ---
 
@@ -90,7 +79,7 @@ A single rendered image captures maybe 30% of a 3D model's geometry. The back, b
 I tested this systematically by varying the number of views from 1 to 28 using DINOv2 with mean-pooled embeddings:
 
 ![Multi-view comparison: view count ablation and aggregation strategies](../images/post-1_multiview_comparison.png)
-*Figure 2: Left — Retrieval mAP improves sharply from 1→8 views, with diminishing returns beyond 12. Right — Concatenation + PCA dramatically outperforms mean/max pooling, achieving 0.429 mAP with DINOv2-Giant.*
+*Figure 2: Left — Retrieval mAP improves sharply from 1→8 views, with diminishing returns beyond 12. Right — Concatenation + PCA dramatically outperforms mean/max pooling, achieving 0.429 mAP with DINOv2-Giant. Image by author.*
 
 The jump from 1 view to 4 views is dramatic: DINOv2-Giant goes from 0.311 to 0.354 mAP (a **14% improvement**). Adding more views continues to help but with diminishing returns — 8 views gets 0.363, and 28 views gets 0.370 with mean pooling.
 
@@ -104,7 +93,7 @@ My camera setup uses two complementary strategies:
 Together, these 28 viewpoints give robust coverage with manageable compute cost. Rendering all 28 views of a single model takes about 1.1 seconds on a Tesla T4 GPU using [nvdiffrast](https://github.com/NVlabs/nvdiffrast).
 
 ![Multi-view renders of three example models](../images/post-1_multiview_renders.png)
-*Figure 3: Eight ring views (45° apart) for three Objaverse models. The horizontal ring captures the most discriminative angles; dodecahedron views (not shown) fill in top/bottom coverage.*
+*Figure 3: Eight ring views (45° apart) for three Objaverse models. The horizontal ring captures the most discriminative angles; dodecahedron views (not shown) fill in top/bottom coverage. Image by author.*
 
 The ModelNet40 audit makes the case even more clearly. On the duplicate detection task — finding re-exported or subtly modified copies within ModelNet40's 12,311 models — single-view thumbnails achieve a P@1 of just **0.08%**. Multi-view textured embeddings achieve **34.0%** P@1, a **425× improvement**. The single-view approach is essentially useless for finding duplicates; multi-view makes it a practical tool.
 
@@ -126,7 +115,7 @@ Evaluating near-duplicate detection requires knowing the ground truth — which 
 **3D-DupBench** starts with 191 source models from [Objaverse-LVIS](https://objaverse.allenai.org/objaverse-1.0) (licensed CC-BY-4.0) and generates controlled clones at five difficulty tiers:
 
 ![Five difficulty tiers of 3D-DupBench](../images/post-1_tier_examples.png)
-*Figure 4: 3D-DupBench's five tiers, from trivial format re-exports (T1) to adversarial topology changes (T5). Detection recall drops sharply after T2.*
+*Figure 4: 3D-DupBench's five tiers, from trivial format re-exports (T1) to adversarial topology changes (T5). Detection recall drops sharply after T2. Image by author.*
 
 Each tier applies increasingly aggressive transformations:
 
@@ -143,7 +132,7 @@ Each tier applies increasingly aggressive transformations:
 The dataset contains 3,056 models total (191 sources × 15 clones each, plus the sources). Each source gets 3 clones per tier (different random seeds), providing statistical robustness. I rendered all 3,056 models from 28 viewpoints in two modes (textured and silhouette), producing **171,136 images** in 56.6 minutes on a single T4 GPU.
 
 ![Clone tier visual comparison from actual renders](../images/post-1_clone_tier_visual.png)
-*Figure 5: Actual rendered views of one source model and its five tiers of clones. T1 and T2 are nearly indistinguishable from the source; T3-T5 show visible geometric changes.*
+*Figure 5: Actual rendered views of one source model and its five tiers of clones. T1 and T2 are nearly indistinguishable from the source; T3-T5 show visible geometric changes. Image by author.*
 
 What makes 3D-DupBench useful is the **tiered evaluation**: rather than reporting a single accuracy number, we can see exactly where methods break down. Trivial duplicates (T1-T2)? Solved. Medium-difficulty clones with non-uniform scaling (T3)? Embedding retrieval starts to struggle. Adversarial topology changes (T4-T5)? Still an open problem for visual embeddings, though geometry baselines handle them better.
 
@@ -181,7 +170,7 @@ I evaluated 40 embedding configurations (4 models × 2 render modes × 5 aggrega
 The top embedding method across the board is DINOv2-ViT-G/14 with all 28 per-view embeddings concatenated and projected down to 768 dimensions via PCA. This achieves **mAP 0.429** on the full benchmark, with **P@1 of 95.0%** — meaning the correct source model is the nearest neighbor 95% of the time.
 
 ![Key results: method comparison and per-tier breakdown](../images/post-1_key_results_summary.png)
-*Figure 6: Left — mAP across all methods. Geometry baselines (Chamfer, SA+Volume) achieve higher raw mAP but don't scale. Right — Per-tier breakdown showing where embeddings struggle relative to geometry.*
+*Figure 6: Left — mAP across all methods. Geometry baselines (Chamfer, SA+Volume) achieve higher raw mAP but don't scale. Right — Per-tier breakdown showing where embeddings struggle relative to geometry. Image by author.*
 
 A few surprises emerged from the bakeoff:
 
@@ -204,7 +193,7 @@ In production, the right architecture combines both: use embeddings for fast can
 Raw embedding search at threshold τ=0.68 produces 63.2% precision and 42.1% recall. Many of the false positives are semantically similar but geometrically distinct models (two different chairs, say). Adding a [Gemini 2.0 Flash](https://ai.google.dev/gemini-api/docs/models#gemini-2.0-flash) VLM rescorer that compares 8-angle renders of each candidate pair boosts precision to **95.0%** while maintaining 27.6% recall.
 
 ![ModelNet40 results and rescorer precision-recall tradeoff](../images/post-1_rescorer_tradeoff.png)
-*Figure 7: Left — ModelNet40 single-view vs multi-view comparison. Right — VLM rescorer precision-recall curve as a function of the minimum evidence-angle threshold. At ≥2 evidence angles, precision hits 95% with manageable recall loss.*
+*Figure 7: Left — ModelNet40 single-view vs multi-view comparison. Right — VLM rescorer precision-recall curve as a function of the minimum evidence-angle threshold. At ≥2 evidence angles, precision hits 95% with manageable recall loss. Image by author.*
 
 The rescorer works by rendering both models from the same 8 angles and asking the VLM: "Are these the same 3D object?" It votes across angles — if ≥2 out of 8 viewpoints confirm a match, the pair is flagged. This multi-angle voting is crucial: a single viewpoint can be fooled by coincidental similarity, but requiring agreement across multiple angles filters out false positives effectively.
 
@@ -273,15 +262,15 @@ D, I = index.search(query_vector, k=20)  # <7ms at 1M
 This post covered the "what" and "why" — the rest of the series dives into the "how."
 
 ![Series roadmap](../images/post-1_series_roadmap.png)
-*Figure 8: Five-part series plan. Each post is designed to be standalone, with cross-references to related posts.*
+*Figure 8: Five-part series plan. Each post is designed to be standalone, with cross-references to related posts. Image by author.*
 
-**[Post 2: Multi-View Rendering](/post-2)** — Camera placement strategy (ring vs dodecahedron), GPU-accelerated rendering with nvdiffrast, the blank-image trap that silently corrupts 1% of renders, and how textured vs silhouette rendering affects downstream quality.
+**Post 2: Multi-View Rendering** — Camera placement strategy (ring vs dodecahedron), GPU-accelerated rendering with nvdiffrast, the blank-image trap that silently corrupts 1% of renders, and how textured vs silhouette rendering affects downstream quality.
 
-**[Post 3: Embeddings & Retrieval](/post-3)** — The full DINOv2 vs CLIP bakeoff across 40 configurations, why concatenation+PCA beats mean pooling, how geometry baselines (Chamfer, Hausdorff, SA+Volume) compare, and the surprising irrelevance of render mode.
+**Post 3: Embeddings & Retrieval** — The full DINOv2 vs CLIP bakeoff across 40 configurations, why concatenation+PCA beats mean pooling, how geometry baselines (Chamfer, Hausdorff, SA+Volume) compare, and the surprising irrelevance of render mode.
 
-**[Post 4a: Building 3D-DupBench](/post-4a)** — Benchmark design philosophy, the five-tier clone generation process, Objaverse-LVIS as a source dataset, evaluation metrics and protocol, and lessons from building a benchmark with controlled difficulty.
+**Post 4a: Building 3D-DupBench** — Benchmark design philosophy, the five-tier clone generation process, Objaverse-LVIS as a source dataset, evaluation metrics and protocol, and lessons from building a benchmark with controlled difficulty.
 
-**[Post 4b: Results & Production](/post-4b)** — VLM rescorer design and ablation studies, FAISS index selection at scale, threshold calibration, cost analysis (~$0.006 per model for the full pipeline), and a production deployment architecture.
+**Post 4b: Results & Production** — VLM rescorer design and ablation studies, FAISS index selection at scale, threshold calibration, cost analysis (~$0.006 per model for the full pipeline), and a production deployment architecture.
 
 Each post stands on its own — you can read Post 3 (embeddings) without Post 2 (rendering) if that's where your interest lies. But the posts build on each other: understanding why multi-view matters (Post 2) makes the aggregation strategies in Post 3 more intuitive, and the benchmark design (Post 4a) sets up the production decisions in Post 4b.
 
@@ -301,7 +290,7 @@ The complete benchmark dataset — 171,136 rendered images, pre-computed embeddi
 
 ---
 
-*This is Part 1 of 5 in the series "Detecting 3D Near-Duplicates at Scale." Next up: [Post 2 — Multi-View Rendering](/post-2), where I'll walk through the camera placement strategy and the rendering pipeline that makes everything else possible.*
+*This is Part 1 of 5 in the series "Detecting 3D Near-Duplicates at Scale." Next up: Post 2 — Multi-View Rendering, where I'll walk through the camera placement strategy and the rendering pipeline that makes everything else possible.*
 
 ---
 

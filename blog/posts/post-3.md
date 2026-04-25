@@ -1,14 +1,3 @@
----
-title: "Which Vision Model Sees 3D Shapes Best? A DINOv2, CLIP, and Geometry Bake-Off"
-subtitle: "Comparing 4 foundation models, 6 aggregation strategies, and classical geometry baselines for 3D near-duplicate retrieval"
-author: "Harish Wajjala"
-date: 2026-04-24
-series: "Detecting 3D Near-Duplicates at Scale"
-part: 3 of 5
-tags: ["3D Computer Vision", "Machine Learning", "Near-Duplicate Detection", "DINOv2", "Multi-View Rendering"]
-estimated_read_time: "19 min"
----
-
 # Which Vision Model Sees 3D Shapes Best? A DINOv2, CLIP, and Geometry Bake-Off
 
 *Comparing 4 foundation models, 6 aggregation strategies, and classical geometry baselines for 3D near-duplicate retrieval*
@@ -25,11 +14,11 @@ Why? The answer is embarrassingly simple: **scale beats specialization**. The la
 
 But "it works well" isn't an engineering answer. *How* well? Which model? With how many views? Does the aggregation strategy matter? When should you skip embeddings entirely and just compare geometry?
 
-This post answers those questions with numbers. I evaluated **4 foundation models** (DINOv2-base, DINOv2-giant, CLIP ViT-L/14, CLIP ViT-B/32) across **5 aggregation strategies** (single-view, mean-8, mean-28, max-28, concat+PCA) with **2 rendering modes** (textured, silhouette) — that's 40 embedding configurations — plus **3 classical geometry baselines** (Chamfer distance, Hausdorff distance, surface area + volume). Everything is evaluated on the [3D-DupBench](/post-1) dataset: 191 source models from Objaverse with 2,865 synthetic clones across 5 difficulty tiers.
+This post answers those questions with numbers. I evaluated **4 foundation models** (DINOv2-base, DINOv2-giant, CLIP ViT-L/14, CLIP ViT-B/32) across **5 aggregation strategies** (single-view, mean-8, mean-28, max-28, concat+PCA) with **2 rendering modes** (textured, silhouette) — that's 40 embedding configurations — plus **3 classical geometry baselines** (Chamfer distance, Hausdorff distance, surface area + volume). Everything is evaluated on the 3D-DupBench dataset: 191 source models from Objaverse with 2,865 synthetic clones across 5 difficulty tiers.
 
 The headline result: **DINOv2-giant with concat+PCA aggregation over 28 LFD views** achieves the highest mAP of **0.429**, but the margins between configurations tell a more nuanced story. The choice of aggregation strategy often matters more than the choice of model.
 
-*This is Part 3 of 5 in the series "[Detecting 3D Near-Duplicates at Scale](/post-1)." [Part 1](/post-1) introduced the pipeline and benchmark. [Part 2](/post-2) covered multi-view rendering. Part 4a will address benchmark design, and Part 4b will cover search and threshold tuning at scale.*
+*This is Part 3 of 5 in the series "Detecting 3D Near-Duplicates at Scale." Part 1 introduced the pipeline and benchmark. Part 2 covered multi-view rendering. Part 4a will address benchmark design, and Part 4b will cover search and threshold tuning at scale.*
 
 ---
 
@@ -135,7 +124,7 @@ def aggregate_views(per_view_embeddings, strategy="mean"):
 The aggregation comparison reveals a clear hierarchy:
 
 ![Aggregation comparison across models](../images/post-3_03_aggregation_comparison.png)
-*Figure 1: mAP by aggregation strategy for each model. Concat+PCA consistently outperforms other methods, with mean pooling as the strongest simple baseline.*
+*Figure 1: mAP by aggregation strategy for each model. Concat+PCA consistently outperforms other methods, with mean pooling as the strongest simple baseline. Image by author.*
 
 **Concat+PCA wins across all four models.** For DINOv2-base (textured), PCA reaches 0.409 mAP vs. 0.352 for mean-28 — a 16% improvement. For CLIP-B/32, the gap is even larger: 0.397 vs. 0.335 (18% improvement). PCA's advantage comes from preserving view-specific features that mean pooling averages away. When a chair looks like a table from one angle but distinctly chair-like from another, PCA can learn to weight those discriminative views.
 
@@ -166,7 +155,7 @@ On the 3D-DupBench clone retrieval task, the geometry baselines achieve very hig
 What *is* meaningful is the **per-tier breakdown**, where within-group comparisons are the same across all methods:
 
 ![Geometry vs. embedding comparison](../images/post-3_06_geometry_vs_embedding.png)
-*Figure 2: Geometry baselines achieve high metrics on sparse pairwise evaluation, but the comparison to embeddings requires caution due to different negative pool sizes.*
+*Figure 2: Geometry baselines achieve high metrics on sparse pairwise evaluation, but the comparison to embeddings requires caution due to different negative pool sizes. Image by author.*
 
 **T1 (Trivial — re-export):** Geometry baselines hit near-perfect scores (Chamfer mAP: 0.902, Hausdorff: 0.893). Re-exported models have identical geometry, so point cloud distances are essentially zero. Embeddings also perform well here (DINOv2-G PCA: 0.471), but with the full N×N negative pool, they face much harder distractor models.
 
@@ -185,7 +174,7 @@ This is the core of the bake-off: every model × rendering mode × aggregation s
 ### Overall Ranking
 
 ![Method comparison bar chart](../images/post-3_01_method_comparison.png)
-*Figure 3: Overall mAP for the best configuration per model family, plus geometry baselines. DINOv2-giant leads among embeddings, but geometry baselines (evaluated on sparse pairs) show the potential of direct comparison for small-scale tasks.*
+*Figure 3: Overall mAP for the best configuration per model family, plus geometry baselines. DINOv2-giant leads among embeddings, but geometry baselines (evaluated on sparse pairs) show the potential of direct comparison for small-scale tasks. Image by author.*
 
 The top-10 embedding configurations by overall mAP:
 
@@ -217,7 +206,7 @@ Several patterns emerge:
 ### The Per-Tier Breakdown: Where Difficulty Exposes Model Differences
 
 ![Per-tier heatmap](../images/post-3_02_tier_heatmap.png)
-*Figure 4: Per-tier mAP heatmap. Warmer colors indicate higher retrieval accuracy. The difficulty gradient from T1 to T5 clearly degrades all methods, but PCA-based aggregation maintains the strongest performance at every tier.*
+*Figure 4: Per-tier mAP heatmap. Warmer colors indicate higher retrieval accuracy. The difficulty gradient from T1 to T5 clearly degrades all methods, but PCA-based aggregation maintains the strongest performance at every tier. Image by author.*
 
 The per-tier breakdown reveals how clone difficulty affects each method:
 
@@ -244,7 +233,7 @@ The per-tier breakdown reveals how clone difficulty affects each method:
 ### Textured vs. LFD: Does Color Help?
 
 ![Textured vs LFD comparison](../images/post-3_04_textured_vs_lfd.png)
-*Figure 5: Textured vs. LFD (Light Field Descriptor / white plastic) rendering comparison with mean-28 aggregation.*
+*Figure 5: Textured vs. LFD (Light Field Descriptor / white plastic) rendering comparison with mean-28 aggregation. Image by author.*
 
 Textured renders preserve material and color information. LFD renders strip everything to white plastic, isolating pure geometry. Which matters more for duplicate detection?
 
@@ -257,7 +246,7 @@ The practical guidance: **use LFD renders for pure duplicate detection** (margin
 ### View Count Ablation: How Many Views Do You Actually Need?
 
 ![View count ablation](../images/post-3_05_view_ablation.png)
-*Figure 6: mAP vs. number of views for mean-pool aggregation. The biggest jump is from 1 to 4 views; returns diminish sharply after 8.*
+*Figure 6: mAP vs. number of views for mean-pool aggregation. The biggest jump is from 1 to 4 views; returns diminish sharply after 8. Image by author.*
 
 The view count ablation quantifies the diminishing returns of more views:
 
@@ -287,7 +276,7 @@ The efficiency sweet spot is **8 views with mean pooling**: you capture 98% of t
 What does the embedding space actually look like? UMAP projections reveal the structure that similarity metrics operate on.
 
 ![UMAP visualization](../images/post-3_07_umap_visualization.png)
-*Figure 7: UMAP projection of DINOv2-base mean-28 embeddings. Left: colored by clone tier — sources (black) cluster tightly with their T1/T2 clones (green/yellow) but T4/T5 clones (orange/red) drift away. Right: colored by category — clear semantic clustering emerges, with airplanes, cars, and guitars forming tight clusters while chairs and tables overlap.*
+*Figure 7: UMAP projection of DINOv2-base mean-28 embeddings. Left: colored by clone tier — sources (black) cluster tightly with their T1/T2 clones (green/yellow) but T4/T5 clones (orange/red) drift away. Right: colored by category — clear semantic clustering emerges, with airplanes, cars, and guitars forming tight clusters while chairs and tables overlap. Image by author.*
 
 **The tier panel (left)** shows exactly the difficulty gradient we measured quantitatively. Source models (black) form cluster centers. T1 and T2 clones (green shades) sit right on top of their sources — trivial duplicates are trivially close in embedding space. T4 and T5 clones (orange, red) drift further, creating halos around each cluster. Some T5 clones have drifted so far they're closer to *other* categories than to their source.
 
@@ -298,7 +287,7 @@ What does the embedding space actually look like? UMAP projections reveal the st
 ## Precision-Recall: The Threshold Tradeoff
 
 ![Precision-recall curves](../images/post-3_09_precision_recall.png)
-*Figure 8: Precision-recall curves for the top 3 embedding methods. Higher curves indicate better performance; all three methods show a smooth precision-recall tradeoff without abrupt cliffs.*
+*Figure 8: Precision-recall curves for the top 3 embedding methods. Higher curves indicate better performance; all three methods show a smooth precision-recall tradeoff without abrupt cliffs. Image by author.*
 
 The precision-recall curves show how threshold selection affects the precision/recall tradeoff. All three top methods (DINOv2-G PCA, DINOv2-B PCA, CLIP-B PCA) produce smooth curves without the abrupt precision cliffs that would indicate embedding space discontinuities.
 
@@ -309,7 +298,7 @@ At a precision-oriented operating point (0.80 precision), DINOv2-G PCA achieves 
 ## Summary Table
 
 ![Summary results table](../images/post-3_08_summary_table.png)
-*Figure 9: Summary results across all key configurations. The heatmap coloring highlights the performance gradient from geometry baselines (high but sparsely evaluated) through PCA-based methods (best among embeddings) down to single-view baselines.*
+*Figure 9: Summary results across all key configurations. The heatmap coloring highlights the performance gradient from geometry baselines (high but sparsely evaluated) through PCA-based methods (best among embeddings) down to single-view baselines. Image by author.*
 
 ---
 
@@ -360,20 +349,20 @@ Use Chamfer distance as a **first-pass filter for trivial duplicates** (T1). If 
 
 ### How to Combine Approaches
 
-In the production pipeline I built (covered in [Post 4b](/post-4b)):
+In the production pipeline I built (covered in Post 4b of this series):
 
 1. **Geometry pre-filter:** Compute surface area + volume for each model (O(1) per comparison). Flag pairs with ratios > 0.99 as likely trivial duplicates.
 2. **Embedding retrieval:** Use DINOv2-base + PCA-28 embeddings in a FAISS index for approximate nearest-neighbor search. Retrieve top-20 candidates per query.
-3. **Threshold + verification:** Apply a cosine similarity threshold tuned for your precision/recall target. Verify flagged pairs with a VLM (detailed in [Post 4b](/post-4b)).
+3. **Threshold + verification:** Apply a cosine similarity threshold tuned for your precision/recall target. Verify flagged pairs with a VLM (detailed in Post 4b).
 
 ---
 
 ## What's Next
 
-This bake-off established which embeddings to use; the next question is how to *search* them at scale. [Post 4a](/post-4a) covers the 3D-DupBench benchmark design and the ModelNet40 audit, while [Post 4b](/post-4b) covers building a FAISS index over millions of embeddings, tuning similarity thresholds for production precision targets, and the surprising impact of index type on retrieval quality. We'll also address the cold-start problem: how do you set a threshold when you don't have labeled duplicate pairs?
+This bake-off established which embeddings to use; the next question is how to *search* them at scale. Post 4a covers the 3D-DupBench benchmark design and the ModelNet40 audit, while Post 4b covers building a FAISS index over millions of embeddings, tuning similarity thresholds for production precision targets, and the surprising impact of index type on retrieval quality. We'll also address the cold-start problem: how do you set a threshold when you don't have labeled duplicate pairs?
 
 ---
 
-*All code, embeddings, and evaluation scripts from this post are available in the [3D-DupBench repository](https://github.com/hwajjala/3d-dupbench). The 3D-DupBench dataset (191 source models + 2,865 clones across 5 tiers) is released under CC-BY-4.0.*
+*All code, embeddings, and evaluation scripts from this post are available in the [3D-DupBench repository](https://github.com/pkhw2023-ship-it/3d-dedup). The 3D-DupBench dataset (191 source models + 2,865 clones across 5 tiers) is released under CC-BY-4.0.*
 
 *Have questions or want to discuss? Find me on [LinkedIn](https://www.linkedin.com/in/harishwajjala) or [X/Twitter](https://x.com/harishwajjala).*
